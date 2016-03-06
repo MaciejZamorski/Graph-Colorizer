@@ -29,7 +29,7 @@ class GraphColorizer:
         """The only public method, used to start execution of the ga."""
         results = []
         for n in range(self.N):
-            results.append(self._do_coloring())
+            results.append(self._do_coloring(n))
         return results
 
     def _fitness(self, individual):
@@ -39,14 +39,15 @@ class GraphColorizer:
         coloring = self._decode(individual)
         return len(set([k for _, k in coloring]))
 
-    def _do_coloring(self):
+    def _do_coloring(self, n):
         """Main function performed by our GA."""
+        print('Starting run number {}'.format(n))
         population = self._initialize()
         print('Population initialized...')
         t = 0
         solutions = [(self._best(population))]
         while not self._stop_condition_reached(t, solutions):
-            print('Processing generation {}.'.format(t + 1))
+            # print('Processing generation {}.'.format(t + 1))
             population = self._selection(population)
             population = self._crossover(population)
             population = self._mutation(population)
