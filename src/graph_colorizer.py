@@ -25,11 +25,17 @@ class GraphColorizer:
         self.length_of_individual = self._bits_for_vertex(
             self.number_of_vertices)
 
-    def run(self):
+    def best_solution(self):
         """The only public method, used to start execution of the ga."""
         results = []
         for n in range(self.N):
             results.append(self._do_coloring(n))
+        return results
+
+    def statistics(self):
+        results = []
+        for n in range(self.N):
+            results.append(self._do_coloring(n, stats_mode=True))
         return results
 
     def _fitness(self, individual):
@@ -39,7 +45,7 @@ class GraphColorizer:
         coloring = self._decode(individual)
         return len(set([k for _, k in coloring]))
 
-    def _do_coloring(self, n):
+    def _do_coloring(self, n, stats_mode=False):
         """Main function performed by our GA."""
         print('Starting run number {}'.format(n))
         population = self._initialize()
@@ -54,7 +60,10 @@ class GraphColorizer:
             solutions.append(self._best(population))
             t += 1
 
-        return self._best_solution(solutions)
+        if stats_mode:
+            return self._stats(solutions)
+        else:
+            return self._best_solution(solutions)
 
     def _initialize(self):
         """Create the initial population. We randomly choose as many
@@ -146,6 +155,13 @@ class GraphColorizer:
         """
         return any([self._is_valid(self._decode(individual)) for individual in
                     population])
+
+    def _stats(self, solutions):
+        best = min([f for _, f in solutions])
+        worst = max([f for _, f in solutions])
+        avg = sum([f for _, f in solutions]) / len(solutions)
+
+        return best, worst, avg
 
     def _best_solution(self, solutions):
         """Returns best individual and his fitness from list of solutions."""
