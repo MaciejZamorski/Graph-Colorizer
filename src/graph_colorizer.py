@@ -25,27 +25,30 @@ class GraphColorizer:
         self.length_of_individual = self._bits_for_vertex(
             self.number_of_vertices)
 
-    def best_solution(self):
+    def colorize(self):
         """The only public method, used to start execution of the ga."""
         results = []
         for n in range(self.N):
-            results.append(self._do_coloring(n))
+            results.append(self._colorize(n))
         return results
 
-    def statistics(self):
+    def run_statistics(self):
         results = []
         for n in range(self.N):
-            results.append(self._do_coloring(n, stats_mode=True))
+            results.append(self._colorize(n))
         return results
+
+    def generations_statistics(self):
+        return self._generations_stats()
 
     def _fitness(self, individual):
         """Fitness functions calculating a number of colors used. We want to
         minimize that.
         """
         coloring = self._decode(individual)
-        return len(set([k for _, k in coloring]))
+        return 100 * self.number_of_vertices / len(set([k for _, k in coloring]))
 
-    def _do_coloring(self, n, stats_mode=False):
+    def _colorize(self, n):
         """Main function performed by our GA."""
         print('Starting run number {}'.format(n))
         population = self._initialize()
@@ -53,17 +56,48 @@ class GraphColorizer:
         t = 0
         solutions = [(self._best(population))]
         while not self._stop_condition_reached(t, solutions):
-            # print('Processing generation {}.'.format(t + 1))
             population = self._selection(population)
             population = self._crossover(population)
             population = self._mutation(population)
             solutions.append(self._best(population))
             t += 1
+        return self._best_solution(solutions)
 
-        if stats_mode:
-            return self._stats(solutions)
-        else:
-            return self._best_solution(solutions)
+    def _run_stats(self):
+        print('Starting run number {}'.format(n))
+        population = self._initialize()
+        print('Population initialized...')
+        t = 0
+        solutions = [(self._best(population))]
+        while not self._stop_condition_reached(t, solutions):
+            population = self._selection(population)
+            population = self._crossover(population)
+            population = self._mutation(population)
+            solutions.append(self._best(population))
+            t += 1
+        return self._stats(solutions)
+
+    def _generations_stats(self):
+        print('Starting run number {}'.format(0))
+        population = self._initialize()
+        print('Population initialized...')
+        t = 0
+        solutions = [self._bwa(population)]
+        while not self._stop_condition_reached(t, solutions):
+            population = self._selection(population)
+            population = self._crossover(population)
+            population = self._mutation(population)
+            solutions.append(self._bwa(population))
+            t += 1
+        return solutions
+
+    def _bwa(self, population):
+        fitnesses = self._fitnesses(population)
+        best = max([f for _, f in fitnesses])
+        worst = min([f for _, f in fitnesses])
+        average = sum([f for _, f in fitnesses]) / len(fitnesses)
+
+        return best, worst, average
 
     def _initialize(self):
         """Create the initial population. We randomly choose as many
@@ -87,7 +121,7 @@ class GraphColorizer:
 
     def _encode(self, coloring, individual_len=None):
         """Encode the vertices into one long binary sequence. The vertex
-        number 1 is most right, number 2 second from right etc.
+        number 1 is most righte number 2 second from right etc.
         """
         if individual_len is None:
             individual_len = self.length_of_individual
@@ -148,7 +182,7 @@ class GraphColorizer:
         newest = wyniki[-1]
         k_previous = wyniki[-k:-1]
         k_ago = k_previous[0]
-        return newest[1] >= k_ago[1]
+        return newest[1] <= k_ago[1]
 
     def _solution_exist(self, population):
         """Returns true if in population exist individual with valid solution.
@@ -157,8 +191,8 @@ class GraphColorizer:
                     population])
 
     def _stats(self, solutions):
-        best = min([f for _, f in solutions])
-        worst = max([f for _, f in solutions])
+        best = max([f for _, f in solutions])
+        worst = min([f for _, f in solutions])
         avg = sum([f for _, f in solutions]) / len(solutions)
 
         return best, worst, avg
@@ -167,7 +201,7 @@ class GraphColorizer:
         """Returns best individual and his fitness from list of solutions."""
         best_individual, best_score = solutions[0]
         for individual, score in solutions:
-            if score < best_score:
+            if score > best_score:
                 best_individual, best_score = individual, score
         return best_individual, best_score
 

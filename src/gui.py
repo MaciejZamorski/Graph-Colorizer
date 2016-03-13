@@ -55,8 +55,8 @@ mutation_prob_entry = ttk.Entry(win, width=20, textvariable=mutation_prob)
 mutation_prob_entry.grid(column=1, row=5)
 
 
-def run():
-    path = filename.get()
+def set_params():
+    path = "files/" + filename.get()
     params = {
         'N': times_run.get(),
         'T': max_time.get(),
@@ -65,31 +65,10 @@ def run():
         'crossover_probability': crossing_prob.get() / 100,
         'max_no_improvements': 100,
     }
-
-    gc = GraphColorizer(path, params)
-    results = gc.best_solution()
-    colors = [result[1] for result in results]
-
-    result = 'Min: {}, max: {}, avg: {}'.format(min(colors), max(colors),
-                                                sum(colors) / len(colors))
-    results_label = ttk.Label(win, text=result)
-    results_label.grid(column=0, row=7)
+    return path, params
 
 
-def stats():
-    path = filename.get()
-    params = {
-        'N': times_run.get(),
-        'T': max_time.get(),
-        'population_size': population_size.get(),
-        'mutation_probability': mutation_prob.get() / 100,
-        'crossover_probability': crossing_prob.get() / 100,
-        'max_no_improvements': 100,
-    }
-
-    gc = GraphColorizer(path, params)
-    results = gc.statistics()
-    x = [k for k in range(len(results))]
+def compute_results_stats(results):
     best_results = []
     worst_results = []
     avg_results = []
@@ -97,17 +76,56 @@ def stats():
         best_results.append(best)
         worst_results.append(worst)
         avg_results.append(avg)
+    return best_results, worst_results, avg_results
 
+
+def plot_results(results, best_results, worst_results, avg_results):
+    x = [k for k in range(len(results))]
     line1, = mpl.plot(x, best_results, label='Best result')
     line2, = mpl.plot(x, avg_results, label='Average result')
     line3, = mpl.plot(x, worst_results, label='Worst result')
-    mpl.legend([line3, line2, line1], ["Worst", "Average", "Best"])
+    mpl.legend([line1, line2, line3], ["Best", "Average", "Worst"])
     mpl.show()
 
 
-run_button = ttk.Button(win, text="Run", command=run)
-run_button.grid(column=0, row=6)
+def show_results(results):
+    best_results, worst_results, avg_results = compute_results_stats(results)
+    plot_results(results, best_results, worst_results, avg_results)
 
-stats_button = ttk.Button(win, text="Stats", command=stats)
-stats_button.grid(column=1, row=6)
+
+def run():
+    path, params = set_params()
+    gc = GraphColorizer(path, params)
+    results = gc.colorize()
+    colors = [result[1] for result in results]
+    result = 'Min: {.2f}, max: {.2f}, avg: {.2f}'.format(
+        min(colors), max(colors), sum(colors) / len(colors))
+    results_label = ttk.Label(win, text=result)
+    results_label.grid(column=1, row=6)
+
+
+def run_stats():
+    path, params = set_params()
+    gc = GraphColorizer(path, params)
+    results = gc.run_statistics()
+    show_results(results)
+
+
+def generation_stats():
+    path, params = set_params()
+    gc = GraphColorizer(path, params)
+    results = gc.generations_statistics()
+    show_results(results)
+
+run_button = ttk.Button(win, text="Colorize", command=run)
+run_button.grid(column=2, row=0)
+
+stats_iter = ttk.Button(win, text="Single run statistics",
+                        command=generation_stats)
+stats_iter.grid(column=2, row=2)
+
+stats_button = ttk.Button(win, text="Multiple runs statistics",
+                          command=run_stats)
+stats_button.grid(column=2, row=4)
+
 win.mainloop()
