@@ -98,10 +98,10 @@ def run():
     gc = GraphColorizer(path, params)
     results = gc.colorize()
     colors = [result[1] for result in results]
-    result = 'Min: {.2f}, max: {.2f}, avg: {.2f}'.format(
+    result = 'Min: {:.2f}, max: {:.2f}, avg: {:.2f}'.format(
         min(colors), max(colors), sum(colors) / len(colors))
     results_label = ttk.Label(win, text=result)
-    results_label.grid(column=1, row=6)
+    results_label.grid(column=2, row=1)
 
 
 def run_stats():

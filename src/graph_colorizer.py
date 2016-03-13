@@ -35,7 +35,7 @@ class GraphColorizer:
     def run_statistics(self):
         results = []
         for n in range(self.N):
-            results.append(self._colorize(n))
+            results.append(self._run_stats(n))
         return results
 
     def generations_statistics(self):
@@ -43,7 +43,7 @@ class GraphColorizer:
 
     def _fitness(self, individual):
         """Fitness functions calculating a number of colors used. We want to
-        minimize that.
+        maximize that.
         """
         coloring = self._decode(individual)
         return 100 * self.number_of_vertices / len(set([k for _, k in coloring]))
@@ -63,7 +63,7 @@ class GraphColorizer:
             t += 1
         return self._best_solution(solutions)
 
-    def _run_stats(self):
+    def _run_stats(self, n):
         print('Starting run number {}'.format(n))
         population = self._initialize()
         print('Population initialized...')
